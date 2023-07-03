@@ -1,5 +1,20 @@
 <script setup>
+    import axios from 'axios'
+    import { reactive } from 'vue'
     import DaysWeather from './DaysWeather.vue'
+
+    let weatherData = reactive({
+        temperature: '',
+        description: '',
+        iconUrl: '',
+        date: '',
+        time: '',
+        name: '',
+        country: '',
+        wind: '',
+        humidity: '',
+        monthNames: ['January', 'February', 'March', 'April', 'May', 'Jun', 'July', 'August', 'September', 'October', 'November', 'December']
+    })
 
     const props = defineProps({
         city: {
@@ -7,6 +22,30 @@
             required: true
         }
     })
+
+    const getWeather = async () => {
+        const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${props.city}&units=metric&appid=e6a5d0cf02835f18f97970563b7053a8`)
+        const responseData = response.data
+        weatherData.temperature = Math.round(responseData.main.temp)
+        weatherData.description = responseData.weather[0].description
+        weatherData.name = responseData.name
+        weatherData.iconUrl = `https://api.openweathermap.org/img/w/${responseData.weather[0].icon}`
+        weatherData.country = responseData.sys.country
+        weatherData.wind = responseData.wind.speed
+        weatherData.humidity = responseData.main.humidity
+        
+        const d = new Date()
+        weatherData.date =  weatherData.monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear()
+        weatherData.time = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
+
+        console.log(responseData)
+    }
+
+    getWeather()
+
+    // onBeforeMount(async () => {
+    //     getWeather()
+    // })
 </script>
 
 <template>
@@ -14,14 +53,14 @@
         <div class="d-flex">
             <div class="card main-div w-100">
                 <div class="p-3">
-                    <h2 class="mb-1 day">Tuesday</h2>
-                    <p class="text-light date mb-0">date</p>
-                    <small>time</small>
-                    <h2 class="place"><i class="fa fa-location">Rio <small>{{ props.city }}</small></i></h2>
+                    <h2 class="mb-1 day">Today</h2>
+                    <p class="text-light date mb-0">{{ weatherData.date }}</p>
+                    <small>{{ weatherData.time }}</small>
+                    <h2 class="place"><i class="fa fa-location"> {{ weatherData.name }}, <small>{{ weatherData.country }}</small></i></h2>
 
                     <div class="temp">
-                        <h1 class="weather-temp">19&deg;</h1>
-                        <h2 class="text-light">description</h2>
+                        <h1 class="weather-temp">{{ weatherData.temperature }}&deg;</h1>
+                        <h2 class="text-light">{{ weatherData.description }} <img :src="weatherData.iconUrl"></h2>
                     </div>
                 </div>
             </div>
@@ -31,15 +70,14 @@
                     <tbody>
                         <tr>
                             <th>Sea Level</th>
-                            <td>100</td>
                         </tr>
                         <tr>
-                            <th>Sea Level</th>
-                            <td>100</td>
+                            <th>Humidity</th>
+                            <td>{{ weatherData.humidity }}</td>
                         </tr>
                         <tr>
-                            <th>Sea Level</th>
-                            <td>100</td>
+                            <th>Wind</th>
+                            <td>{{ weatherData.wind }}</td>
                         </tr>
                     </tbody>
                 </table>

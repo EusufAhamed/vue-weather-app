@@ -1,8 +1,15 @@
 <script setup>
-  import { ref } from 'vue'
+  import { nextTick, ref } from 'vue'
   import Weather from './components/Weather.vue'
 
   const city = ref('')
+  const showWeather = ref()
+
+  const searchWeather = async () => {
+    showWeather.value = false
+    await nextTick() // need to be explore
+    showWeather.value = true
+  }
 </script>
 
 <template>
@@ -15,11 +22,11 @@
           <input v-model="city" type="text" class="input form-control" placeholder="Enter a City">
         </div>
 
-        <button class="btn-search btn btn-primary">Search <i class="fas fa-search"></i></button>
+        <button class="btn-search btn btn-primary" @click="searchWeather">Search <i class="fas fa-search"></i></button>
       </div>
     </div>
     <br>
-    <Weather :city="city"/>
+    <Weather :city="city" v-if="showWeather"/>
   </div>
 </template>
 
