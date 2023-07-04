@@ -3,7 +3,15 @@
     import { reactive } from 'vue'
     import DaysWeather from './DaysWeather.vue'
 
+    const props = defineProps({
+        city: {
+            type: String,
+            required: true
+        }
+    })
+
     let weatherData = reactive({
+        cityName: props.city,
         temperature: '',
         description: '',
         iconUrl: '',
@@ -14,13 +22,6 @@
         wind: '',
         humidity: '',
         monthNames: ['January', 'February', 'March', 'April', 'May', 'Jun', 'July', 'August', 'September', 'October', 'November', 'December']
-    })
-
-    const props = defineProps({
-        city: {
-            type: String,
-            required: true
-        }
     })
 
     const getWeather = async () => {
@@ -38,7 +39,7 @@
         weatherData.date =  weatherData.monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear()
         weatherData.time = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
 
-        console.log(responseData)
+        // console.log(responseData)
     }
 
     getWeather()
@@ -82,7 +83,7 @@
                     </tbody>
                 </table>
 
-                <DaysWeather />
+                <DaysWeather :cityname="weatherData.cityName"/>
 
                 <div id="div_Form" class="d-flex m-3 justify-content-center">
                     <form action="">

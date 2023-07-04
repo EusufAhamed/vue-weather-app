@@ -1,30 +1,68 @@
 <script setup>
+    import axios from 'axios'
+    import moment from 'moment'
+    import { reactive } from 'vue'
+
+    const props = defineProps({
+        cityname: {
+            type: String,
+            required: true
+        }
+    })
+
+    let finalData = reactive({
+        forecast: [],
+        loading: true,
+        iconUrl: ''
+    })
+
+    const fetchWeatherData = async () => {
+        const apiKey = 'e6a5d0cf02835f18f97970563b7053a8'
+        const city = props.cityname
+        const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${apiKey}`
+        
+        await axios.get(apiUrl)
+            .then(res => {
+                const forecastData = res.data.list
+                const filteredData = forecastData.map(item => {
+                    return {
+                        date: moment(item.dt_txt.split(' ')[0]),
+                        temprecher: Math.round(item.main.temp),
+                        description: item.weather[0].description,
+                        iconUrl: `https://api.openweathermap.org/img/w/${item.weather[0].icon}`
+                    }
+                }).reduce((acc, item) => {
+                    if(!acc.some(day => day.date.isSame(item.date, 'day'))){
+                        acc.push(item)
+                    }
+                    
+                    return acc
+                }, []).slice(1, 5)
+                // console.log('final', filteredData)
+                finalData.forecast = filteredData
+                finalData.loading = false
+            }).catch(error => {
+                console.error('Error fetching weather data: ', error)
+                finalData.loading = false
+            })
+    }
+ 
+    fetchWeatherData()
+
+    const getDayName = date => {
+        return date.format('ddd')
+    }
 </script>
 
 <template>
     <div class="days-tab text-center">
-        <div class="loading">Loading......</div>
+        <div class="loading" v-if="finalData.loading">Loading......</div>
 
-        <ul class="p-0">
-            <li class="li_active">
-                <div class="py-3">icon</div>
-                <div class="py-3">day</div>
-                <div class="py-3">12oc</div>
-            </li>
-            <li class="li_active">
-                <div class="py-3">icon</div>
-                <div class="py-3">day</div>
-                <div class="py-3">12oc</div>
-            </li>
-            <li class="li_active">
-                <div class="py-3">icon</div>
-                <div class="py-3">day</div>
-                <div class="py-3">12oc</div>
-            </li>
-            <li class="li_active">
-                <div class="py-3">icon</div>
-                <div class="py-3">day</div>
-                <div class="py-3">12oc</div>
+        <ul class="p-0" v-else>
+            <li class="li_active" v-for="day in finalData.forecast" :key="day.date">
+                <div class="py-3"><img :src="day.iconUrl"></div>
+                <div class="py-3">{{ getDayName(day.date) }}</div>
+                <div class="py-3">{{ day.temprecher }}&deg;C</div>
             </li>
         </ul>
     </div>
